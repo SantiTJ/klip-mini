@@ -1,86 +1,78 @@
-  'use client';
+"use client";
 
-  import { useState } from 'react';
-  import { useRouter } from 'next/navigation';
-  import { useAuth } from '@/context/AuthContext';
-  import { createProject } from '@/lib/project';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { createProject } from "@/lib/project";
 
-  export default function NuevoProyectoPage() {
-    const router = useRouter();
-    const { user } = useAuth();
+export default function NuevoProyectoPage() {
+  const router = useRouter();
+  const { user } = useAuth();
 
-    const [nombre, setNombre] = useState('');
-    const [descripcion, setDescripcion] = useState('');
-    const [archivo, setArchivo] = useState<File | null>(null);
-    const [error, setError] = useState('');
+  const [nombre, setNombre] = useState("");
+  const [descripcion, setDescripcion] = useState("");
+  const [archivo, setArchivo] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setError('');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !archivo) return;
 
-      if (!user) {
-        setError('No hay usuario autenticado.');
-        return;
-      }
+    try {
+      setLoading(true);
+      await createProject(user, { nombre, descripcion, archivo });
+      router.push("/proyectos");
+    } catch (error) {
+      alert("Error al crear el proyecto.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      if (!nombre || !archivo) {
-        setError('El nombre y el archivo son obligatorios.');
-        return;
-      }
-
-      try {
-        await createProject(user, {
-          nombre,
-          descripcion,
-          archivo,
-        });
-
-        router.push('/proyectos');
-      } catch (err) {
-        console.error(err);
-        setError('Error al crear el proyecto.');
-      }
-    };
-
-    return (
-      <div className="max-w-xl mx-auto py-8">
-        <h1 className="text-2xl font-bold mb-4">Nuevo Proyecto</h1>
-
-        {error && <p className="text-red-500 mb-2">{error}</p>}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+  return (
+    <div className="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
+      <h1 className="text-2xl font-bold mb-4">Nuevo Proyecto</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block mb-1">Nombre</label>
           <input
             type="text"
-            placeholder="Nombre del proyecto"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            className="w-full p-2 border rounded"
+            className="w-full border px-3 py-2 rounded text-black"
+            required
           />
+        </div>
 
+        <div>
+          <label className="block mb-1">Descripción</label>
           <textarea
-            placeholder="Descripción (opcional)"
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
-            className="w-full p-2 border rounded"
+            className="w-full border px-3 py-2 rounded text-black"
+            required
           />
+        </div>
 
+        <div>
+          <label className="block mb-1">Archivo</label>
           <input
             type="file"
-            onChange={(e) => {
-              if (e.target.files?.[0]) {
-                setArchivo(e.target.files[0]);
-              }
-            }}
-            className="w-full p-2 border rounded"
+            onChange={(e) => setArchivo(e.target.files?.[0] || null)}
+            className="w-full"
+            required
           />
+        </div>
 
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Crear Proyecto
-          </button>
-        </form>
-      </div>
-    );
-  }
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading ? "Creando..." : "Crear Proyecto"}
+        </button>
+      </form>
+    </div>
+  );
+}
