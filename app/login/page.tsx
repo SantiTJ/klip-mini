@@ -2,46 +2,58 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from '@/lib/auth';
-import { useAuth } from '@/context/AuthContext';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
-  const { login } = useAuth(); // Contexto
 
-  const handleLogin = async () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
     try {
-      await signInWithEmailAndPassword(email, password);
-      login(email); // Guardamos el email en el contexto
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message);
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/dashboard'); // o '/proyectos' si prefieres
+    } catch (err) {
+      setError('Error al iniciar sesión');
+      console.error(err);
     }
   };
 
   return (
-    <div>
-      <h1>Iniciar sesión</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <div className="max-w-sm mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-4">Iniciar sesión</h1>
 
-      <input
-        type="email"
-        placeholder="Correo"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+      {error && <p className="text-red-500 mb-2">{error}</p>}
 
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      <form onSubmit={handleLogin} className="space-y-4">
+        <input
+          type="email"
+          placeholder="Correo electrónico"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
 
-      <button onClick={handleLogin}>Iniciar sesión</button>
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Iniciar sesión
+        </button>
+      </form>
     </div>
   );
 }

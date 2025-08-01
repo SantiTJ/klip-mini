@@ -1,3 +1,10 @@
-export default function NuevoProyectoPage() {
-  return <h1>Crear nuevo proyecto</h1>;
+import ProtectedRoute from '@/components/ProtectedRoute';
+import NuevoProyectoPage from './NuevoProyectoPage';
+
+export default function NuevoPage() {
+  return (
+    <ProtectedRoute>
+      <NuevoProyectoPage />
+    </ProtectedRoute>
+  );
 }

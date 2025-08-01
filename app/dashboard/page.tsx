@@ -10,7 +10,7 @@ export default function DashboardPage() {
     <ProtectedRoute>
       <div>
         <h1>Bienvenido al Dashboard</h1>
-        <p>Usuario autenticado: <strong>{user}</strong></p>
+        <p>Bienvenido, {user?.email}</p>
         <button onClick={logout}>Cerrar sesión</button>
       </div>
     </ProtectedRoute>
