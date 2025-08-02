@@ -1,76 +1,99 @@
-"use client";
+// File: /app/nuevo/NuevoProyectoPage.tsx
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import { createProject } from "@/lib/project";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/context/AuthContext';
+import { subirArchivo } from '@/components/UploadFile';
 
 export default function NuevoProyectoPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
+  const [nombre, setNombre] = useState('');
+  const [descripcion, setDescripcion] = useState('');
   const [archivo, setArchivo] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [cargando, setCargando] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !archivo) return;
+    if (!user) return alert('Debes estar logueado.');
 
+    setCargando(true);
     try {
-      setLoading(true);
-      await createProject(user, { nombre, descripcion, archivo });
-      router.push("/proyectos");
-    } catch (error) {
-      alert("Error al crear el proyecto.");
-      console.error(error);
+      let archivoUrl: string | undefined;
+      if (archivo) {
+        archivoUrl = await subirArchivo(archivo, user.uid);
+      }
+
+      await addDoc(collection(db, 'projects'), {
+        nombre,
+        descripcion,
+        archivoUrl: archivoUrl || null,
+        uid: user.uid,
+        createdAt: serverTimestamp(),
+      });
+
+      router.push('/proyectos');
+    } catch (err) {
+      console.error(err);
+      alert('Error al crear el proyecto.');
     } finally {
-      setLoading(false);
+      setCargando(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
-      <h1 className="text-2xl font-bold mb-4">Nuevo Proyecto</h1>
+    <div className="max-w-xl mx-auto mt-10 p-6 bg-white shadow rounded-lg text-black">
+      <h1 className="text-2xl font-bold mb-6">Nuevo Proyecto</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block mb-1">Nombre</label>
+          <label htmlFor="nombre" className="block font-semibold mb-1">
+            Nombre
+          </label>
           <input
+            id="nombre"
             type="text"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            className="w-full border px-3 py-2 rounded text-black"
+            className="w-full px-4 py-2 border rounded"
             required
           />
         </div>
 
         <div>
-          <label className="block mb-1">Descripción</label>
+          <label htmlFor="descripcion" className="block font-semibold mb-1">
+            Descripción
+          </label>
           <textarea
+            id="descripcion"
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
-            className="w-full border px-3 py-2 rounded text-black"
+            className="w-full px-4 py-2 border rounded"
             required
           />
         </div>
 
         <div>
-          <label className="block mb-1">Archivo</label>
+          <label htmlFor="archivo" className="block font-semibold mb-1">
+            Archivo (opcional)
+          </label>
           <input
+            id="archivo"
             type="file"
             onChange={(e) => setArchivo(e.target.files?.[0] || null)}
             className="w-full"
-            required
           />
         </div>
 
         <button
           type="submit"
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          disabled={cargando}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50"
         >
-          {loading ? "Creando..." : "Crear Proyecto"}
+          {cargando ? 'Creando…' : 'Crear Proyecto'}
         </button>
       </form>
     </div>

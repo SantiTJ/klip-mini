@@ -8,21 +8,28 @@ interface ProjectCardProps {
   id: string;
   nombre: string;
   descripcion: string;
+  onDeleted?: () => void;
 }
 
-const ProjectCard = ({ id, nombre, descripcion }: ProjectCardProps) => {
+export default function ProjectCard({
+  id,
+  nombre,
+  descripcion,
+  onDeleted,
+}: ProjectCardProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // evita que se dispare el click del contenedor
-    const confirmar = confirm('¿Seguro que quieres eliminar este proyecto?');
-    if (!confirmar) return;
+    e.stopPropagation();
+    if (!confirm('¿Seguro que quieres eliminar este proyecto?')) return;
 
     try {
       setLoading(true);
       await deleteProject(id);
+      if (onDeleted) onDeleted();
     } catch (error) {
+      console.error(error);
       alert('Error al eliminar el proyecto.');
     } finally {
       setLoading(false);
@@ -49,6 +56,4 @@ const ProjectCard = ({ id, nombre, descripcion }: ProjectCardProps) => {
       </button>
     </div>
   );
-};
-
-export default ProjectCard;
+}
