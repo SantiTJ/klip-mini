@@ -1,15 +1,21 @@
-// File: /app/proyectos/[id]/editar/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  PartialWithFieldValue,
+  DocumentData,
+} from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import { subirArchivo } from '@/components/UploadFile';
 import { toast } from 'sonner';
 
-interface UpdateData {
+// Interfaz exacta de lo que hay en tu colección "projects"
+interface ProyectoFirestore {
   nombre: string;
   descripcion: string;
   archivoUrl?: string;
@@ -25,6 +31,7 @@ export default function EditarProyectoPage() {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [cargando, setCargando] = useState(true);
 
+  // Carga inicial con router en deps
   useEffect(() => {
     async function cargar() {
       if (!user) return;
@@ -36,7 +43,7 @@ export default function EditarProyectoPage() {
           router.push('/proyectos');
           return;
         }
-        const data = snap.data();
+        const data = snap.data() as ProyectoFirestore;
         setNombre(data.nombre);
         setDescripcion(data.descripcion);
       } catch (err) {
@@ -57,14 +64,20 @@ export default function EditarProyectoPage() {
       return;
     }
     setCargando(true);
+
     try {
       const ref = doc(db, 'projects', id as string);
-      const updateData: UpdateData = { nombre, descripcion };
+
+      // Usamos el tipo de Firestore para actualizaciones parciales
+      const updateData: PartialWithFieldValue<DocumentData> = {
+        nombre,
+        descripcion,
+      };
       if (archivo) {
         updateData.archivoUrl = await subirArchivo(archivo, user.uid);
       }
-      // ← Aquí el cast a any
-      await updateDoc(ref, updateData as any);
+
+      await updateDoc(ref, updateData);
       toast.success('Proyecto actualizado');
       router.push(`/proyectos/${id}`);
     } catch (err) {
@@ -123,7 +136,9 @@ export default function EditarProyectoPage() {
             onChange={(e) => setArchivo(e.target.files?.[0] || null)}
             className="w-full"
           />
-          <p className="text-gray-500 text-sm mt-1">Máximo 5 MB (PNG/JPG/PDF)</p>
+          <p className="text-gray-500 text-sm mt-1">
+            Máximo 5 MB (PNG/JPG/PDF)
+          </p>
         </div>
 
         {/* Botón */}
