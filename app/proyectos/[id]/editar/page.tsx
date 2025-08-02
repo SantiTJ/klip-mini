@@ -1,4 +1,4 @@
-// File: /app/[id]/editar/page.tsx
+// File: /app/proyectos/[id]/editar/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -6,8 +6,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
-// ↳ corregido: viene de components, no de lib
 import { subirArchivo } from '@/components/UploadFile';
+import { toast } from 'sonner';
 
 export default function EditarProyectoPage() {
   const { id } = useParams();
@@ -22,56 +22,47 @@ export default function EditarProyectoPage() {
   useEffect(() => {
     const cargarDatos = async () => {
       if (!user) return;
-
       try {
         const docRef = doc(db, 'projects', id as string);
         const docSnap = await getDoc(docRef);
-
         if (!docSnap.exists()) {
-          alert('Proyecto no encontrado.');
-          router.push('/proyectos');
-          return;
+          toast.error('Proyecto no encontrado');
+          return router.push('/proyectos');
         }
-
         const data = docSnap.data();
         setNombre(data.nombre || '');
         setDescripcion(data.descripcion || '');
-      } catch (error) {
-        console.error('Error al cargar proyecto:', error);
-        alert('Error al cargar el proyecto.');
+      } catch (err) {
+        console.error(err);
+        toast.error('Error al cargar el proyecto');
         router.push('/proyectos');
       } finally {
         setCargando(false);
       }
     };
-
     cargarDatos();
   }, [id, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      toast.error('Debes estar logueado');
+      return;
+    }
 
+    setCargando(true);
     try {
-      setCargando(true);
       const docRef = doc(db, 'projects', id as string);
-
-      const updateData: Partial<{
-        nombre: string;
-        descripcion: string;
-        archivoUrl: string;
-      }> = { nombre, descripcion };
-
+      const updateData: any = { nombre, descripcion };
       if (archivo) {
-        const archivoUrl = await subirArchivo(archivo, user.uid);
-        updateData.archivoUrl = archivoUrl;
+        updateData.archivoUrl = await subirArchivo(archivo, user.uid);
       }
-
       await updateDoc(docRef, updateData);
+      toast.success('Proyecto actualizado');
       router.push(`/proyectos/${id}`);
-    } catch (error) {
-      console.error('Error al actualizar el proyecto:', error);
-      alert('Error al actualizar el proyecto.');
+    } catch (err) {
+      console.error(err);
+      toast.error('Error al actualizar el proyecto');
     } finally {
       setCargando(false);
     }
@@ -82,13 +73,11 @@ export default function EditarProyectoPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-6 bg-white text-black shadow rounded-lg">
+    <div className="max-w-xl mx-auto mt-10 p-6 bg-white shadow rounded-lg text-black">
       <h1 className="text-2xl font-bold mb-6">Editar Proyecto</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="nombre" className="block font-semibold mb-1">
-            Nombre
-          </label>
+          <label htmlFor="nombre" className="block font-semibold mb-1">Nombre</label>
           <input
             id="nombre"
             type="text"
@@ -100,9 +89,7 @@ export default function EditarProyectoPage() {
         </div>
 
         <div>
-          <label htmlFor="descripcion" className="block font-semibold mb-1">
-            Descripción
-          </label>
+          <label htmlFor="descripcion" className="block font-semibold mb-1">Descripción</label>
           <textarea
             id="descripcion"
             value={descripcion}
@@ -113,9 +100,7 @@ export default function EditarProyectoPage() {
         </div>
 
         <div>
-          <label htmlFor="archivo" className="block font-semibold mb-1">
-            Archivo (opcional)
-          </label>
+          <label htmlFor="archivo" className="block font-semibold mb-1">Archivo (opcional)</label>
           <input
             id="archivo"
             type="file"

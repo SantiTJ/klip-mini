@@ -1,8 +1,10 @@
+// File: /components/ProjectCard.tsx
 'use client';
 
 import { deleteProject } from '@/lib/project';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface ProjectCardProps {
   id: string;
@@ -22,15 +24,19 @@ export default function ProjectCard({
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('¿Seguro que quieres eliminar este proyecto?')) return;
+    if (!confirm('¿Seguro que quieres eliminar este proyecto?')) {
+      toast('Eliminación cancelada', { description: 'Tu proyecto sigue ahí.' });
+      return;
+    }
 
     try {
       setLoading(true);
       await deleteProject(id);
-      if (onDeleted) onDeleted();
+      toast.success('Proyecto eliminado');
+      onDeleted?.();
     } catch (error) {
       console.error(error);
-      alert('Error al eliminar el proyecto.');
+      toast.error('Error al eliminar el proyecto');
     } finally {
       setLoading(false);
     }

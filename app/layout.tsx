@@ -1,21 +1,21 @@
-// app/layout.tsx
-import './globals.css'
-import { ReactNode } from 'react'
-import { AuthContextProvider } from '../context/AuthContext';
+// File: /app/layout.tsx
+'use client';
 
-export const metadata = {
-  title: 'KLIP',
-  description: 'Tu descripción',
-}
+import { Toaster } from 'sonner';
+import { AuthContextProvider } from '@/context/AuthContext';
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body>
+      <body className="min-h-screen bg-gray-50">
+        {/* Contexto de autenticación envolviendo toda la app */}
         <AuthContextProvider>
+          {/* Toasts globales */}
+          <Toaster richColors position="top-right" />
+          
           {children}
         </AuthContextProvider>
       </body>
     </html>
-  )
+  );
 }

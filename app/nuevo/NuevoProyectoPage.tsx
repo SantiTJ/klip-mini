@@ -7,6 +7,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import { subirArchivo } from '@/components/UploadFile';
+import { toast } from 'sonner';
 
 export default function NuevoProyectoPage() {
   const router = useRouter();
@@ -19,11 +20,14 @@ export default function NuevoProyectoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return alert('Debes estar logueado.');
+    if (!user) {
+      toast.error('Debes estar logueado');
+      return;
+    }
 
     setCargando(true);
     try {
-      let archivoUrl: string | undefined;
+      let archivoUrl: string | null = null;
       if (archivo) {
         archivoUrl = await subirArchivo(archivo, user.uid);
       }
@@ -31,15 +35,16 @@ export default function NuevoProyectoPage() {
       await addDoc(collection(db, 'projects'), {
         nombre,
         descripcion,
-        archivoUrl: archivoUrl || null,
+        archivoUrl,
         uid: user.uid,
         createdAt: serverTimestamp(),
       });
 
+      toast.success('Proyecto creado');
       router.push('/proyectos');
     } catch (err) {
       console.error(err);
-      alert('Error al crear el proyecto.');
+      toast.error('Error al crear el proyecto');
     } finally {
       setCargando(false);
     }
