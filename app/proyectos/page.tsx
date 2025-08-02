@@ -1,4 +1,3 @@
-// File: /app/proyectos/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -30,9 +29,8 @@ export default function ProyectosPage() {
         );
         const querySnapshot = await getDocs(q);
         const proyectosData: Proyecto[] = [];
-
         querySnapshot.forEach((doc) => {
-          const data = doc.data();
+          const data = doc.data() as Proyecto;
           proyectosData.push({
             id: doc.id,
             nombre: data.nombre,
@@ -40,9 +38,8 @@ export default function ProyectosPage() {
             archivoUrl: data.archivoUrl ?? undefined,
           });
         });
-
         setProyectos(proyectosData);
-      } catch (error: unknown) {
+      } catch (error) {
         console.error('Error al cargar proyectos:', error);
       } finally {
         setCargando(false);
@@ -55,12 +52,13 @@ export default function ProyectosPage() {
   }, [user, loading]);
 
   if (loading || cargando) {
-    return <p className="text-center mt-10">Cargando proyectos…</p>;
+    return <p className="text-center mt-10">Cargando proyectos...</p>;
   }
 
   return (
     <div className="max-w-4xl mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Tus Proyectos</h1>
+
       {proyectos.length === 0 ? (
         <p className="text-gray-600">No has creado ningún proyecto aún.</p>
       ) : (

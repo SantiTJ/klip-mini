@@ -1,3 +1,4 @@
+// File: /app/proyectos/[id]/editar/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,7 +9,6 @@ import { useAuth } from '@/context/AuthContext';
 import { subirArchivo } from '@/components/UploadFile';
 import { toast } from 'sonner';
 
-// Definimos el tipo de datos que vamos a actualizar
 interface UpdateData {
   nombre: string;
   descripcion: string;
@@ -25,7 +25,6 @@ export default function EditarProyectoPage() {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [cargando, setCargando] = useState(true);
 
-  // Carga inicial
   useEffect(() => {
     async function cargar() {
       if (!user) return;
@@ -51,7 +50,6 @@ export default function EditarProyectoPage() {
     cargar();
   }, [id, user, router]);
 
-  // Envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -61,14 +59,12 @@ export default function EditarProyectoPage() {
     setCargando(true);
     try {
       const ref = doc(db, 'projects', id as string);
-      const updateData: UpdateData = {
-        nombre,
-        descripcion,
-      };
+      const updateData: UpdateData = { nombre, descripcion };
       if (archivo) {
         updateData.archivoUrl = await subirArchivo(archivo, user.uid);
       }
-      await updateDoc(ref, updateData);
+      // ← Aquí el cast a any
+      await updateDoc(ref, updateData as any);
       toast.success('Proyecto actualizado');
       router.push(`/proyectos/${id}`);
     } catch (err) {
