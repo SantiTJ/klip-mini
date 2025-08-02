@@ -2,70 +2,79 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { useAuth } from '@/context/AuthContext';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-// ↳ IMPORT CORREGIDO: ahora apuntamos al directorio raíz de componentes
+import { useAuth } from '@/context/AuthContext';
 import ProjectCard from '@/components/ProjectCard';
 
 interface Proyecto {
   id: string;
   nombre: string;
   descripcion: string;
+  archivoUrl?: string;
 }
 
 export default function ProyectosPage() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-    const cargarProyectos = async () => {
-      setCargando(true);
+    async function cargarProyectos() {
+      if (!user) return;
+
       try {
         const q = query(
           collection(db, 'projects'),
-          where('uid', '==', user.uid),
+          where('uid', '==', user.uid)
         );
-        const snapshot = await getDocs(q);
-        const lista = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...(doc.data() as any),
-        }));
-        setProyectos(lista);
-      } catch (err) {
-        console.error('Error al cargar proyectos:', err);
+        const querySnapshot = await getDocs(q);
+        const proyectosData: Proyecto[] = [];
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          proyectosData.push({
+            id: doc.id,
+            nombre: data.nombre,
+            descripcion: data.descripcion,
+            archivoUrl: data.archivoUrl ?? undefined,
+          });
+        });
+
+        setProyectos(proyectosData);
+      } catch (error: unknown) {
+        console.error('Error al cargar proyectos:', error);
       } finally {
         setCargando(false);
       }
-    };
-    cargarProyectos();
-  }, [user]);
+    }
 
-  const handleDeleteLocal = (deletedId: string) => {
-    setProyectos(prev => prev.filter(p => p.id !== deletedId));
-  };
+    if (!loading) {
+      cargarProyectos();
+    }
+  }, [user, loading]);
 
-  if (cargando) {
+  if (loading || cargando) {
     return <p className="text-center mt-10">Cargando proyectos…</p>;
   }
 
   return (
-    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 p-6">
-      {proyectos.map(({ id, nombre, descripcion }) => (
-        <ProjectCard
-          key={id}
-          id={id}
-          nombre={nombre}
-          descripcion={descripcion}
-          onDeleted={() => handleDeleteLocal(id)}
-        />
-      ))}
-      {proyectos.length === 0 && (
-        <p className="col-span-full text-center text-gray-500">
-          No tienes proyectos todavía.
-        </p>
+    <div className="max-w-4xl mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-6">Tus Proyectos</h1>
+      {proyectos.length === 0 ? (
+        <p className="text-gray-600">No has creado ningún proyecto aún.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {proyectos.map((proyecto) => (
+            <ProjectCard
+              key={proyecto.id}
+              id={proyecto.id}
+              nombre={proyecto.nombre}
+              descripcion={proyecto.descripcion}
+              archivoUrl={proyecto.archivoUrl}
+            />
+          ))}
+        </div>
       )}
     </div>
   );
