@@ -7,6 +7,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 interface Proyecto {
   nombre: string;
@@ -47,12 +48,11 @@ export default function ProyectoDetallePage() {
     };
 
     cargarProyecto();
-  }, [id, user]);
+  }, [id, user, router]);
 
   if (cargando) {
     return <p className="text-center mt-10">Cargando proyecto…</p>;
   }
-
   if (!proyecto) {
     return <p className="text-center mt-10">No se encontró el proyecto.</p>;
   }
@@ -74,18 +74,12 @@ export default function ProyectoDetallePage() {
       )}
 
       <div className="flex space-x-4">
-        <button
-          onClick={() => router.push(`/proyectos/${id}/editar`)}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-        >
+        <Button variant="default" onClick={() => router.push(`/proyectos/${id}/editar`)}>
           Editar
-        </button>
-        <button
-          onClick={() => router.push('/proyectos')}
-          className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-        >
+        </Button>
+        <Button variant="outline" onClick={() => router.push('/proyectos')}>
           Volver
-        </button>
+        </Button>
       </div>
     </div>
   );

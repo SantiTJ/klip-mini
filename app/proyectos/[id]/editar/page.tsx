@@ -1,21 +1,16 @@
+// File: /app/proyectos/[id]/editar/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import {
-  doc,
-  getDoc,
-  updateDoc,
-  PartialWithFieldValue,
-  DocumentData,
-} from 'firebase/firestore';
+import { useParams, useRouter } from 'next/navigation';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import { subirArchivo } from '@/components/UploadFile';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
-// Interfaz exacta de lo que hay en tu colección "projects"
-interface ProyectoFirestore {
+interface UpdateData {
   nombre: string;
   descripcion: string;
   archivoUrl?: string;
@@ -31,7 +26,6 @@ export default function EditarProyectoPage() {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [cargando, setCargando] = useState(true);
 
-  // Carga inicial con router en deps
   useEffect(() => {
     async function cargar() {
       if (!user) return;
@@ -43,7 +37,7 @@ export default function EditarProyectoPage() {
           router.push('/proyectos');
           return;
         }
-        const data = snap.data() as ProyectoFirestore;
+        const data = snap.data();
         setNombre(data.nombre);
         setDescripcion(data.descripcion);
       } catch (err) {
@@ -64,19 +58,12 @@ export default function EditarProyectoPage() {
       return;
     }
     setCargando(true);
-
     try {
       const ref = doc(db, 'projects', id as string);
-
-      // Usamos el tipo de Firestore para actualizaciones parciales
-      const updateData: PartialWithFieldValue<DocumentData> = {
-        nombre,
-        descripcion,
-      };
+      const updateData: UpdateData = { nombre, descripcion };
       if (archivo) {
         updateData.archivoUrl = await subirArchivo(archivo, user.uid);
       }
-
       await updateDoc(ref, updateData);
       toast.success('Proyecto actualizado');
       router.push(`/proyectos/${id}`);
@@ -96,7 +83,6 @@ export default function EditarProyectoPage() {
     <div className="max-w-xl mx-auto mt-10 p-6 bg-white shadow rounded-lg text-black">
       <h1 className="text-2xl font-bold mb-6">Editar Proyecto</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Nombre */}
         <div>
           <label htmlFor="nombre" className="block font-semibold mb-1">
             Nombre
@@ -111,7 +97,6 @@ export default function EditarProyectoPage() {
           />
         </div>
 
-        {/* Descripción */}
         <div>
           <label htmlFor="descripcion" className="block font-semibold mb-1">
             Descripción
@@ -125,7 +110,6 @@ export default function EditarProyectoPage() {
           />
         </div>
 
-        {/* Archivo */}
         <div>
           <label htmlFor="archivo" className="block font-semibold mb-1">
             Nuevo archivo (opcional)
@@ -136,19 +120,17 @@ export default function EditarProyectoPage() {
             onChange={(e) => setArchivo(e.target.files?.[0] || null)}
             className="w-full"
           />
-          <p className="text-gray-500 text-sm mt-1">
-            Máximo 5 MB (PNG/JPG/PDF)
-          </p>
+          <p className="text-gray-500 text-sm mt-1">Máximo 5 MB (PNG/JPG/PDF)</p>
         </div>
 
-        {/* Botón */}
-        <button
-          type="submit"
-          disabled={cargando}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50"
-        >
-          {cargando ? 'Guardando…' : 'Guardar cambios'}
-        </button>
+        <div className="flex space-x-4">
+          <Button variant="default" type="submit" disabled={cargando}>
+            {cargando ? 'Guardando…' : 'Guardar cambios'}
+          </Button>
+          <Button variant="outline" onClick={() => router.push(`/proyectos/${id}`)}>
+            Cancelar
+          </Button>
+        </div>
       </form>
     </div>
   );
