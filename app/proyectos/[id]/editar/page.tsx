@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { subirArchivo } from '@/components/UploadFile';
 import { toast } from 'sonner';
 
+// Definimos el tipo de datos que vamos a actualizar
 interface UpdateData {
   nombre: string;
   descripcion: string;
@@ -24,6 +25,7 @@ export default function EditarProyectoPage() {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [cargando, setCargando] = useState(true);
 
+  // Carga inicial
   useEffect(() => {
     async function cargar() {
       if (!user) return;
@@ -32,13 +34,14 @@ export default function EditarProyectoPage() {
         const snap = await getDoc(ref);
         if (!snap.exists()) {
           toast.error('Proyecto no encontrado');
-          return router.push('/proyectos');
+          router.push('/proyectos');
+          return;
         }
         const data = snap.data();
         setNombre(data.nombre);
         setDescripcion(data.descripcion);
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        console.error(err);
         toast.error('Error al cargar el proyecto');
         router.push('/proyectos');
       } finally {
@@ -48,6 +51,7 @@ export default function EditarProyectoPage() {
     cargar();
   }, [id, user, router]);
 
+  // Envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -67,8 +71,8 @@ export default function EditarProyectoPage() {
       await updateDoc(ref, updateData);
       toast.success('Proyecto actualizado');
       router.push(`/proyectos/${id}`);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       toast.error('Error al actualizar el proyecto');
     } finally {
       setCargando(false);
@@ -83,6 +87,7 @@ export default function EditarProyectoPage() {
     <div className="max-w-xl mx-auto mt-10 p-6 bg-white shadow rounded-lg text-black">
       <h1 className="text-2xl font-bold mb-6">Editar Proyecto</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Nombre */}
         <div>
           <label htmlFor="nombre" className="block font-semibold mb-1">
             Nombre
@@ -97,6 +102,7 @@ export default function EditarProyectoPage() {
           />
         </div>
 
+        {/* Descripción */}
         <div>
           <label htmlFor="descripcion" className="block font-semibold mb-1">
             Descripción
@@ -110,6 +116,7 @@ export default function EditarProyectoPage() {
           />
         </div>
 
+        {/* Archivo */}
         <div>
           <label htmlFor="archivo" className="block font-semibold mb-1">
             Nuevo archivo (opcional)
@@ -120,9 +127,10 @@ export default function EditarProyectoPage() {
             onChange={(e) => setArchivo(e.target.files?.[0] || null)}
             className="w-full"
           />
-          <p className="text-gray-500 text-sm mt-1">Máximo 5MB, PNG/JPG/PDF</p>
+          <p className="text-gray-500 text-sm mt-1">Máximo 5 MB (PNG/JPG/PDF)</p>
         </div>
 
+        {/* Botón */}
         <button
           type="submit"
           disabled={cargando}
