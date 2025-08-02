@@ -1,120 +1,148 @@
-// File: /app/proyectos/[id]/editar/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useAuth } from '@/context/AuthContext';
 import { subirArchivo } from '@/components/UploadFile';
 import { toast } from 'sonner';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const schema = z.object({
+  nombre: z
+    .string()
+    .min(3, 'El nombre debe tener al menos 3 caracteres')
+    .max(100, 'El nombre no puede superar 100 caracteres'),
+  descripcion: z
+    .string()
+    .min(10, 'La descripción debe tener al menos 10 caracteres')
+    .max(1000, 'La descripción no puede superar 1000 caracteres'),
+});
+type FormData = z.infer<typeof schema>;
 
 export default function EditarProyectoPage() {
   const { id } = useParams();
   const router = useRouter();
   const { user } = useAuth();
-
-  const [nombre, setNombre] = useState('');
-  const [descripcion, setDescripcion] = useState('');
   const [archivo, setArchivo] = useState<File | null>(null);
-  const [cargando, setCargando] = useState(true);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  });
 
   useEffect(() => {
-    const cargarDatos = async () => {
-      if (!user) return;
-      try {
-        const docRef = doc(db, 'projects', id as string);
-        const docSnap = await getDoc(docRef);
-        if (!docSnap.exists()) {
-          toast.error('Proyecto no encontrado');
-          return router.push('/proyectos');
-        }
-        const data = docSnap.data();
-        setNombre(data.nombre || '');
-        setDescripcion(data.descripcion || '');
-      } catch (err) {
-        console.error(err);
-        toast.error('Error al cargar el proyecto');
-        router.push('/proyectos');
-      } finally {
-        setCargando(false);
+    if (!user) return;
+    (async () => {
+      const docRef = doc(db, 'projects', id as string);
+      const snap = await getDoc(docRef);
+      if (!snap.exists()) {
+        toast.error('Proyecto no encontrado');
+        return router.push('/proyectos');
       }
-    };
-    cargarDatos();
-  }, [id, user, router]);
+      const data = snap.data() as any;
+      setValue('nombre', data.nombre);
+      setValue('descripcion', data.descripcion);
+    })();
+  }, [id, user, router, setValue]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: FormData) => {
     if (!user) {
       toast.error('Debes estar logueado');
       return;
     }
-
-    setCargando(true);
     try {
       const docRef = doc(db, 'projects', id as string);
-      const updateData: any = { nombre, descripcion };
+      const updateData: any = {
+        nombre: data.nombre,
+        descripcion: data.descripcion,
+      };
+
       if (archivo) {
+        if (archivo.size > 5_000_000) {
+          toast.error('El archivo supera 5MB');
+          return;
+        }
+        const tipos = ['image/png', 'image/jpeg', 'application/pdf'];
+        if (!tipos.includes(archivo.type)) {
+          toast.error('Formato inválido (PNG, JPG o PDF)');
+          return;
+        }
         updateData.archivoUrl = await subirArchivo(archivo, user.uid);
       }
+
       await updateDoc(docRef, updateData);
       toast.success('Proyecto actualizado');
       router.push(`/proyectos/${id}`);
     } catch (err) {
       console.error(err);
       toast.error('Error al actualizar el proyecto');
-    } finally {
-      setCargando(false);
     }
   };
-
-  if (cargando) {
-    return <p className="text-center mt-10">Cargando proyecto…</p>;
-  }
 
   return (
     <div className="max-w-xl mx-auto mt-10 p-6 bg-white shadow rounded-lg text-black">
       <h1 className="text-2xl font-bold mb-6">Editar Proyecto</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Nombre */}
         <div>
-          <label htmlFor="nombre" className="block font-semibold mb-1">Nombre</label>
+          <label htmlFor="nombre" className="block font-semibold mb-1">
+            Nombre
+          </label>
           <input
             id="nombre"
-            type="text"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
+            {...register('nombre')}
             className="w-full px-4 py-2 border rounded"
-            required
           />
+          {errors.nombre && (
+            <p className="text-red-600 text-sm mt-1">{errors.nombre.message}</p>
+          )}
         </div>
 
+        {/* Descripción */}
         <div>
-          <label htmlFor="descripcion" className="block font-semibold mb-1">Descripción</label>
+          <label htmlFor="descripcion" className="block font-semibold mb-1">
+            Descripción
+          </label>
           <textarea
             id="descripcion"
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
+            {...register('descripcion')}
             className="w-full px-4 py-2 border rounded"
-            required
           />
+          {errors.descripcion && (
+            <p className="text-red-600 text-sm mt-1">{errors.descripcion.message}</p>
+          )}
         </div>
 
+        {/* Archivo */}
         <div>
-          <label htmlFor="archivo" className="block font-semibold mb-1">Archivo (opcional)</label>
+          <label htmlFor="archivo" className="block font-semibold mb-1">
+            Nuevo archivo (PNG, JPG o PDF, max 5MB)
+          </label>
           <input
             id="archivo"
             type="file"
             onChange={(e) => setArchivo(e.target.files?.[0] || null)}
             className="w-full"
           />
+          <p className="text-gray-500 text-sm mt-1">Máximo 5MB</p>
         </div>
 
+        {/* Botón */}
         <button
           type="submit"
-          disabled={cargando}
+          disabled={isSubmitting}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50"
         >
-          {cargando ? 'Guardando…' : 'Guardar cambios'}
+          {isSubmitting ? 'Guardando…' : 'Guardar cambios'}
         </button>
       </form>
     </div>
