@@ -3,6 +3,7 @@
 
 import { Toaster } from 'sonner';
 import { AuthContextProvider } from '@/context/AuthContext';
+import Header from '@/components/header'; // <--- Añadido el import del Header
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +13,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthContextProvider>
           {/* Toasts globales */}
           <Toaster richColors position="top-right" />
-          
+
+          <Header /> {/* <--- Header visible en TODAS las páginas */}
+
           {children}
         </AuthContextProvider>
       </body>

@@ -8,33 +8,36 @@ export default function Header() {
   const { user, logout } = useAuth();
 
   return (
-    <header className="bg-white shadow">
-      <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
-        <Link href="/">
-          <span className="text-xl font-bold cursor-pointer">Klip Mini</span>
+    <header className="bg-white shadow sticky top-0 z-40">
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
+        <Link href="/dashboard" className="text-xl font-bold text-primary">
+          Klip Mini SaaS
         </Link>
         <nav className="flex items-center gap-4">
           {user ? (
-            <>
-              <Link href="/dashboard" passHref>
-                <Button variant="outline" size="sm">Dashboard</Button>
-              </Link>
-              <Link href="/proyectos" passHref>
-                <Button variant="outline" size="sm">Proyectos</Button>
-              </Link>
-              <Button variant="destructive" size="sm" onClick={() => logout()}>
+            <div className="flex items-center gap-4">
+              {/* Mini avatar con la inicial, o emoji */}
+              <span className="w-9 h-9 rounded-full flex items-center justify-center bg-blue-100 text-blue-700 font-bold text-lg shadow">
+                {user.displayName?.charAt(0).toUpperCase() ?? '👤'}
+              </span>
+              <span className="text-gray-700 font-semibold hidden sm:inline">
+                {user.displayName || user.email}
+              </span>
+              <Button
+                onClick={logout}
+                className="ml-2"
+                size="sm"
+                variant="outline"
+              >
                 Cerrar sesión
               </Button>
-            </>
+            </div>
           ) : (
-            <>
-              <Link href="/login" passHref>
-                <Button variant="default" size="sm">Login</Button>
-              </Link>
-              <Link href="/register" passHref>
-                <Button variant="outline" size="sm">Registro</Button>
-              </Link>
-            </>
+            <Link href="/login">
+              <Button size="sm" variant="default">
+                Iniciar sesión
+              </Button>
+            </Link>
           )}
         </nav>
       </div>
