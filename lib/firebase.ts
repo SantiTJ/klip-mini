@@ -1,3 +1,4 @@
+// File: lib/firebase.ts
 import { initializeApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
@@ -15,7 +16,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Inicializar App Check SOLO en cliente
-// @ts-expect-error: FIREBASE_APPCHECK_DEBUG_TOKEN se define en runtime
 if (typeof window !== 'undefined') {
   import('firebase/app-check').then(({ initializeAppCheck, ReCaptchaV3Provider }) => {
     initializeAppCheck(app, {

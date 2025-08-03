@@ -1,24 +1,31 @@
-@import "tailwindcss";
+/* Tailwind Directives: importa las capas base, componentes y utilidades */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* Variables globales */
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
-
-@theme inline {
+  /* Variables derivadas (antes estaban bajo “@theme inline”) */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* Modo oscuro */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    /* Mantener también las variables derivadas en dark mode */
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
   }
 }
 
+/* Estilos globales */
 body {
   background: var(--background);
   color: var(--foreground);

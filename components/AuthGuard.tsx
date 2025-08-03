@@ -19,8 +19,10 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
   }, [user, loading, router]);
 
-  // Mientras carga o no haya usuario, no mostramos nada (o spinner).
-  if (loading || !user) return null;
+  if (loading || !user) {
+    // Podrías poner un spinner aquí
+    return null;
+  }
 
   return <>{children}</>;
 }

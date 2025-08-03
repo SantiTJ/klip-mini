@@ -1,4 +1,3 @@
-// File: /components/ProjectCard.tsx
 'use client';
 
 import { deleteProject } from '@/lib/project';
@@ -10,6 +9,8 @@ interface ProjectCardProps {
   id: string;
   nombre: string;
   descripcion: string;
+  /** URL del archivo adjunto, si existe */
+  archivoUrl?: string;
   onDeleted?: () => void;
 }
 
@@ -17,6 +18,7 @@ export default function ProjectCard({
   id,
   nombre,
   descripcion,
+  archivoUrl,
   onDeleted,
 }: ProjectCardProps) {
   const router = useRouter();
@@ -53,6 +55,16 @@ export default function ProjectCard({
     >
       <h2 className="text-xl font-bold mb-2">{nombre}</h2>
       <p className="text-sm mb-4">{descripcion}</p>
+      {archivoUrl && (
+        <a
+          href={archivoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block text-blue-600 underline hover:text-blue-800 mb-4"
+        >
+          Ver archivo
+        </a>
+      )}
       <button
         onClick={handleDelete}
         disabled={loading}

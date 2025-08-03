@@ -1,0 +1,9 @@
+{
+  // Usar la versión de TS de tu proyecto
+  "typescript.tsdk": "node_modules/typescript/lib",
+
+  // Ignorar at-rules desconocidas (Tailwind, PostCSS…)
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore"
+}

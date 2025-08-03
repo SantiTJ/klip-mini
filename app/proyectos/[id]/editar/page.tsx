@@ -10,12 +10,6 @@ import { subirArchivo } from '@/components/UploadFile';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
-interface UpdateData {
-  nombre: string;
-  descripcion: string;
-  archivoUrl?: string;
-}
-
 export default function EditarProyectoPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -59,12 +53,13 @@ export default function EditarProyectoPage() {
     }
     setCargando(true);
     try {
-      const ref = doc(db, 'projects', id as string);
-      const updateData: UpdateData = { nombre, descripcion };
+      const refDoc = doc(db, 'projects', id as string);
       if (archivo) {
-        updateData.archivoUrl = await subirArchivo(archivo, user.uid);
+        const url = await subirArchivo(archivo, user.uid);
+        await updateDoc(refDoc, { nombre, descripcion, archivoURL: url });
+      } else {
+        await updateDoc(refDoc, { nombre, descripcion });
       }
-      await updateDoc(ref, updateData);
       toast.success('Proyecto actualizado');
       router.push(`/proyectos/${id}`);
     } catch (err) {
