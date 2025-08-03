@@ -4,6 +4,7 @@ import { deleteProject } from '@/lib/project';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 interface ProjectCardProps {
   id: string;
@@ -53,18 +54,20 @@ export default function ProjectCard({
       onClick={handleClick}
       className="bg-white text-black rounded-lg shadow-md p-4 w-full max-w-xs cursor-pointer hover:bg-gray-100 transition"
     >
+      {/* PREVIEW MINIATURA */}
+      {archivoUrl && (
+        <div className="relative w-full h-32 mb-3 flex items-center justify-center">
+          <Image
+            src={archivoUrl}
+            alt={nombre}
+            width={200}
+            height={100}
+            className="rounded-md object-contain border bg-white"
+          />
+        </div>
+      )}
       <h2 className="text-xl font-bold mb-2">{nombre}</h2>
       <p className="text-sm mb-4">{descripcion}</p>
-      {archivoUrl && (
-        <a
-          href={archivoUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block text-blue-600 underline hover:text-blue-800 mb-4"
-        >
-          Ver archivo
-        </a>
-      )}
       <button
         onClick={handleDelete}
         disabled={loading}
