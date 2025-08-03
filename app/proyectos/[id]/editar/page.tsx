@@ -56,7 +56,7 @@ export default function EditarProyectoPage() {
       const refDoc = doc(db, 'projects', id as string);
       if (archivo) {
         const url = await subirArchivo(archivo, user.uid);
-        await updateDoc(refDoc, { nombre, descripcion, archivoURL: url });
+        await updateDoc(refDoc, { nombre, descripcion, archivoUrl: url }); // <-- aquí cambiado a minúsculas
       } else {
         await updateDoc(refDoc, { nombre, descripcion });
       }

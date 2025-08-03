@@ -19,7 +19,7 @@ const app = initializeApp(firebaseConfig);
 if (typeof window !== 'undefined') {
   import('firebase/app-check').then(({ initializeAppCheck, ReCaptchaV3Provider }) => {
     initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider('debug'),
+      provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!),
       isTokenAutoRefreshEnabled: true,
     });
   });
