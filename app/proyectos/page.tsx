@@ -51,8 +51,17 @@ export default function ProyectosPage() {
     }
   }, [user, loading]);
 
+  // Loader animado visual
   if (loading || cargando) {
-    return <p className="text-center mt-10">Cargando proyectos...</p>;
+    return (
+      <div className="flex flex-col items-center justify-center h-72">
+        <svg className="animate-spin h-10 w-10 text-gray-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+        </svg>
+        <span className="text-lg font-medium text-gray-600">Cargando tus proyectos…</span>
+      </div>
+    );
   }
 
   return (
